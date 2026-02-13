@@ -1,30 +1,33 @@
-# Stage 1: Build dependencies
-FROM python:3.12-slim-bullseye AS builder
+# Use a slim Python image
+FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
+# Set work directory
 WORKDIR /app
-RUN apt-get update && apt-get install -y gcc libpq-dev
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    netcat-traditional \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Stage 2: Final Runtime
-FROM python:3.12-slim-bullseye
+# Copy project files
+COPY . .
 
-WORKDIR /app
-RUN apt-get update && apt-get install -y libpq5 netcat-traditional && rm -rf /var/lib/apt/lists/*
+# Create static folder and run collectstatic
+RUN mkdir -p /app/staticfiles
+RUN python manage.py collectstatic --noinput
 
-# Create a non-root user for security
-RUN groupadd -r django && useradd -r -g django django
-
-COPY --from=builder /app/wheels /wheels
-RUN pip install --no-cache /wheels/*
-
-COPY --chown=django:django . .
-
-USER django
-
-# Expose port 8000 for Gunicorn
+# Expose port
 EXPOSE 8000
+
+# Start Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
