@@ -12,11 +12,15 @@ services:
     image: nginx:1.25-alpine
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      # Use the PORT variable from .env, or default to 80 if missing
+      - "${NGINX_HTTP_PORT:-80}:80"
+      # Use the HTTPS_PORT variable, or default to 443
+      - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      # Dynamically pick the config file based on the environment
+      - ./${NGINX_CONF_FILE:-nginx/default.conf}:/etc/nginx/conf.d/default.conf
       - static_volume:/app/staticfiles
+      # These volumes will simply be empty/ignored locally if the folders don't exist
       - /etc/letsencrypt:/etc/letsencrypt:ro  
       - ./certbot/www:/var/www/certbot        
     depends_on:
