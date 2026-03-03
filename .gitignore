@@ -212,3 +212,7 @@ __marimo__/
 
 # Static files
 staticfiles/
+
+
+# Local conf
+local.conf

@@ -30,11 +30,18 @@ SECRET_KEY = os.environ.get(
 # Pulls from .env; defaults to False for security if the variable is missing.
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = [
-    "royalarchconsultants.co.ke",
-    "www.royalarchconsultants.co.ke",
-    "75.119.157.193",
-]
+# Dynamically pull ALLOWED_HOSTS from .env, or use the default list.
+env_hosts = os.environ.get("ALLOWED_HOSTS", "")
+if env_hosts:
+    ALLOWED_HOSTS = [host.strip() for host in env_hosts.split(",")]
+else:
+    ALLOWED_HOSTS = [
+        "royalarchconsultants.co.ke",
+        "www.royalarchconsultants.co.ke",
+        "75.119.157.193",
+        "localhost",
+        "127.0.0.1",
+    ]
 
 # Application definition
 INSTALLED_APPS = [
@@ -130,7 +137,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
