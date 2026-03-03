@@ -214,5 +214,8 @@ __marimo__/
 staticfiles/
 
 
-# Local conf
+# Local Conf
 local.conf
+
+# Docker Compose Overide
+docker-compose.override.yml
